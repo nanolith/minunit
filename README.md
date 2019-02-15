@@ -56,3 +56,24 @@ console.  This test runner assumes an ANSI compatible console.  In future
 versions of this library, it will be possible to substitute in an alternative
 test runner so that tests can be run from a GUI, in an embedded context, or via
 some other user-defined mechanism.
+
+Building and Installing
+=======================
+
+This library uses CMake.  To install, set the `CMAKE_INSTALL_PREFIX` as
+appropriate and build / install via cmake.  Ideally, create a separate build
+subdirectory for running the build and install steps.  For instance, on Unix,
+the following can be used, starting in the project root.
+
+    mkdir build
+    cd build
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local ../CMakeLists.txt
+    make
+    make install
+
+The last installation step may require root privileges (i.e. run via sudo) if
+you are installing to a privileged location.
+
+This library creates a pkg-config file, called minunit.pc, which can be used to
+set compile and link options for finding the include files for this library and
+to link against the default test runner.
