@@ -67,7 +67,7 @@ the following can be used, starting in the project root.
 
     mkdir build
     cd build
-    cmake -DCMAKE_INSTALL_PREFIX=/usr/local ../CMakeLists.txt
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local ..
     make
     make install
 
