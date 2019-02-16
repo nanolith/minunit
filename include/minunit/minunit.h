@@ -30,7 +30,7 @@ extern "C" {
  * source file.
  */
 #define TEST_SUITE(name) \
-    int minunit_reserved_## name ##_init = \
+    static int minunit_reserved_## name ##_init = \
         minunit_register_suite(#name)
 
 /**
@@ -38,11 +38,11 @@ extern "C" {
  */
 
 #define TEST(name) \
-    void minunit_reserved_## name ##_test_func( \
+    static void minunit_reserved_## name ##_test_func( \
         minunit_test_context_t* minunit_reserved_context); \
-    int minunit_reserved_## name ##_init = \
+    static int minunit_reserved_## name ##_init = \
         minunit_register_test(&minunit_reserved_## name ## _test_func, #name); \
-    void minunit_reserved_## name ##_test_func( \
+    static void minunit_reserved_## name ##_test_func( \
         minunit_test_context_t* minunit_reserved_context)
 
 /**
