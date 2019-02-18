@@ -20,6 +20,7 @@ extern "C" {
 
 #include <stdio.h>
 #include <minunit/internal.h>
+#include <minunit/list.h>
 
 /**
  * \brief Begin a test suite.

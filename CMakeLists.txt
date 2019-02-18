@@ -2,10 +2,15 @@ PROJECT(minunit)
 
 cmake_minimum_required(VERSION 3.10)
 
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules")
+
+find_package(modelcheck REQUIRED)
+
 INCLUDE_DIRECTORIES(include)
 AUX_SOURCE_DIRECTORY(src MINUNIT_SOURCES)
 
 ADD_LIBRARY(minunit STATIC ${MINUNIT_SOURCES})
+TARGET_COMPILE_OPTIONS(minunit PRIVATE ${MODELCHECK_CFLAGS})
 
 #Build a pkg-config file
 SET(MINUNIT_PC "${CMAKE_BINARY_DIR}/minunit.pc")
@@ -31,3 +36,6 @@ INSTALL(TARGETS minunit
 
 #Examples
 ADD_SUBDIRECTORY(examples)
+
+#Model checks
+ADD_SUBDIRECTORY(model-check)

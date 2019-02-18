@@ -60,6 +60,14 @@ some other user-defined mechanism.
 Building and Installing
 =======================
 
+This library has one dependency, which is the [modelcheck][modelcheck-lib]
+library.  You will need to install this to a suitable location and configure
+CMake below to find it.  If you install it somewhere other than the system
+default, then set `CMAKE_PREFIX_PATH` to pick up this location so that the
+configuration process below succeeds.
+
+[modelcheck-lib]: https://github.com/nanolith/modelcheck
+
 This library uses CMake.  To install, set the `CMAKE_INSTALL_PREFIX` as
 appropriate and build / install via cmake.  Ideally, create a separate build
 subdirectory for running the build and install steps.  For instance, on Unix,
@@ -77,3 +85,14 @@ you are installing to a privileged location.
 This library creates a pkg-config file, called minunit.pc, which can be used to
 set compile and link options for finding the include files for this library and
 to link against the default test runner.
+
+Development of minunit
+======================
+
+A `run_tests` target is defined and must pass successfully in order for a pull
+request to be accepted into the minunit project.  This requires a relatively
+recent snapshot of [CBMC][cbmc-github].  This target performs model checking on
+some of the internals for the test runner, which ensures that the test runner is
+sound.
+
+[cbmc-github]: https://github.com/diffblue/cbmc

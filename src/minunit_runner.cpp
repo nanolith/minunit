@@ -61,43 +61,6 @@ int minunit_register_test(minunit_test_func_t test_func, const char* name)
 }
 
 /**
- * \brief Reverse a test case list.
- */
-static void reverse(minunit_test_case_t** root)
-{
-    minunit_test_case_t* prev = nullptr;
-    minunit_test_case_t* curr = *root;
-    minunit_test_case_t* next = nullptr;
-
-    while (nullptr != curr)
-    {
-        next = curr->next;
-        curr->next = prev;
-        prev = curr;
-        curr = next;
-    }
-
-    *root = prev;
-}
-
-/**
- * \brief Count the suites and unit tests in this test list.
- */
-static void count(
-    minunit_test_case_t* root, unsigned int *suites, unsigned int *tests)
-{
-    while (nullptr != root)
-    {
-        if (MINUNIT_TEST_TYPE_SUITE == root->type)
-            *suites += 1;
-        if (MINUNIT_TEST_TYPE_UNIT == root->type)
-            *tests += 1;
-
-        root = root->next;
-    }
-}
-
-/**
  * \brief Run the unit tests.
  */
 static int test_runner()
@@ -105,13 +68,13 @@ static int test_runner()
     int ret = 0;
 
     /* first, reverse the list of registered tests. */
-    reverse(&minunit_test_cases);
+    minunit_list_reverse(&minunit_test_cases);
 
     /* count suites and tests. */
     unsigned int suites = 0;
     unsigned int tests = 0;
     unsigned int fail_count = 0;
-    count(minunit_test_cases, &suites, &tests);
+    minunit_list_count(minunit_test_cases, &suites, &tests);
 
     printf("\033[0m[%s]\033[0m Executing %u suite%s with %s%u test%s.\n",
            "==========",
