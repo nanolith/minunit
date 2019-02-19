@@ -1,20 +1,20 @@
 language: cpp
 
 before_install:
-    - sudo apt-get install -y cmake git make
+    - sudo apt-get install -y cmake git make gcc-8 g++-8
 
 before_script:
     - cd /tmp
     - git clone https://github.com/nanolith/cbmc cbmc
     - cd /tmp/cbmc && git checkout develop
     - mkdir build && cd build
-    - cmake -DCMAKE_INSTALL_PREFIX=/tmp/apps/minunit ..
+    - CC=gcc-8 CXX=g++-8 cmake -DCMAKE_INSTALL_PREFIX=/tmp/apps/minunit ..
     - make && make install
     - cd /tmp
     - git clone https://github.com/nanolith/modelcheck modelcheck
     - cd modelcheck && git checkout v0.1.0
     - mkdir build && cd build
-    - cmake -DCMAKE_INSTALL_PREFIX=/tmp/apps/minunit ..
+    - CC=gcc-8 CXX=g++-8 cmake -DCMAKE_INSTALL_PREFIX=/tmp/apps/minunit ..
     - make && make install
     - cd /tmp
     - export PATH=/tmp/apps/minunit/bin:$PATH
@@ -28,5 +28,5 @@ jobs:
             install:
             script:
                 mkdir build && cd build
-                cmake -DCMAKE_INSTALL_PREFIX=/tmp/apps/minunit -DCMAKE_PREFIX_PATH=/tmp/apps/minunit ..
+                CC=gcc-8 CXX=g++-8 cmake -DCMAKE_INSTALL_PREFIX=/tmp/apps/minunit -DCMAKE_PREFIX_PATH=/tmp/apps/minunit ..
                 make && make run_tests
