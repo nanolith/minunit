@@ -13,6 +13,25 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef FORKED_TEST_RUNNER
+# include <signal.h>
+# include <sys/socket.h>
+# include <sys/wait.h>
+#endif
+
+#ifdef FORKED_TEST_RUNNER
+static bool child_process_died = false;
+static pid_t child;
+
+static void set_child_process_died(int)
+{
+    child_process_died = true;
+
+    int status;
+    waitpid(child, &status, 0);
+}
+#endif
+
 /**
  * \brief Global linked list of test cases and suites.
  */
@@ -63,11 +82,114 @@ int minunit_register_test(minunit_test_func_t test_func, const char* name)
 }
 
 /**
+ * \brief Setup action function.
+ */
+typedef void (*setup_action_func_t)(void*);
+
+/**
+ * No-op setup action.
+ */
+static void no_op_setup_action(void*)
+{
+}
+
+#ifdef FORKED_TEST_RUNNER
+pid_t fork_test_runner(int parentfd, int childfd)
+{
+    child = fork();
+
+    /* parent */
+    if (child != 0)
+    {
+        close(childfd);
+    }
+    /* child */
+    else
+    {
+        close(parentfd);
+    }
+
+    return child;
+}
+
+static void parent_setup_action(void* ctx)
+{
+    int* s = (int*)ctx;
+
+    char ch = 0;
+
+    write(*s, &ch, sizeof(ch));
+}
+
+static void child_setup_action(void* ctx)
+{
+    int* s = (int*)ctx;
+
+    char ch;
+
+    read(*s, &ch, sizeof(ch));
+}
+
+static void write_test_result(void* ctx, bool result)
+{
+    int* s = (int*)ctx;
+
+    uint32_t val = result ? 1 : 0;
+
+    write(*s, &val, sizeof(val));
+}
+
+static bool read_test_result(void* ctx)
+{
+    int* s = (int*)ctx;
+
+    uint32_t val;
+
+    if (read(*s, &val, sizeof(val)) < sizeof(val))
+    {
+        set_child_process_died(0);
+        return false;
+    }
+
+    if (val)
+        return true;
+    else
+        return false;
+}
+#endif
+
+/**
  * \brief Run the unit tests.
  */
 static int test_runner(const minunit_test_options_t* minunit_reserved_options)
 {
     int ret = 0;
+
+    setup_action_func_t setup_action = nullptr;
+    void* forked_context = nullptr;
+
+#ifdef FORKED_TEST_RUNNER
+    int pair[2];
+
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, pair) < 0)
+        perror("socketpair");
+
+    pid_t child = fork_test_runner(pair[0], pair[1]);
+
+    if (child != 0)
+    {
+        setup_action = parent_setup_action;
+        forked_context = pair;
+    }
+    else
+    {
+        setup_action = child_setup_action;
+        forked_context = pair + 1;
+    }
+#else
+    setup_action = no_op_setup_action;
+    forked_context = nullptr;
+#endif
 
     /* first, reverse the list of registered tests. */
     minunit_list_reverse(&minunit_test_cases);
@@ -79,11 +201,18 @@ static int test_runner(const minunit_test_options_t* minunit_reserved_options)
     minunit_list_count(minunit_test_cases, &suites, &tests);
 
     minunit_reserved_options->terminal_set_color(MINUNIT_TERMINAL_COLOR_NORMAL);
-    printf("[%s] Executing %u suite%s with %s%u test%s.\n",
-           "==========",
-           suites, suites == 0 || suites > 1 ? "s" : "",
-           tests == 0 || tests > 1 ? "a total " : "",
-           tests, tests == 0 || tests > 1 ? "s" : "");
+#ifdef FORKED_TEST_RUNNER
+    if (child != 0)
+    {
+#endif
+        printf("[%s] Executing %u suite%s with %s%u test%s.\n",
+               "==========",
+               suites, suites == 0 || suites > 1 ? "s" : "",
+               tests == 0 || tests > 1 ? "a total " : "",
+               tests, tests == 0 || tests > 1 ? "s" : "");
+#ifdef FORKED_TEST_RUNNER
+    }
+#endif
 
     const char* suite = "";
     const char* suite_tag = "";
@@ -95,68 +224,134 @@ static int test_runner(const minunit_test_options_t* minunit_reserved_options)
         /* is this a suite? */
         if (MINUNIT_TEST_TYPE_SUITE == test->type)
         {
-            if (strcmp(suite,""))
+#ifdef FORKED_TEST_RUNNER
+            if (child != 0)
             {
+#endif
+                if (strcmp(suite,""))
+                {
+                    minunit_reserved_options->terminal_set_color(
+                        MINUNIT_TERMINAL_COLOR_NORMAL);
+                    printf("[%s]\n",
+                           "----------");
+                    printf("\n");
+                }
+
+                suite = test->name;
+                suite_tag = "::";
+
                 minunit_reserved_options->terminal_set_color(
                     MINUNIT_TERMINAL_COLOR_NORMAL);
                 printf("[%s]\n",
                        "----------");
-                printf("\n");
+                printf("[%s] %s\n",
+                       " SUITE    ", suite);
+
+#ifdef FORKED_TEST_RUNNER
             }
-
-            suite = test->name;
-            suite_tag = "::";
-
-            minunit_reserved_options->terminal_set_color(
-                MINUNIT_TERMINAL_COLOR_NORMAL);
-            printf("[%s]\n",
-                   "----------");
-            printf("[%s] %s\n",
-                   " SUITE    ", suite);
-
+#endif
         }
         else
         {
-            minunit_reserved_options->terminal_set_color(
-                MINUNIT_TERMINAL_COLOR_GREEN);
-            printf("[%s]", 
-                   " RUN      ");
-            minunit_reserved_options->terminal_set_color(
-                MINUNIT_TERMINAL_COLOR_NORMAL);
-            printf(" Test %s%s%s\n",
-                   suite, suite_tag, test->name);
-
-            minunit_test_context_t result = { true };
-            test->method(minunit_reserved_options, &result);
-            if (!result.pass)
+#ifdef FORKED_TEST_RUNNER
+            if (child != 0)
             {
-                test->failed = true;
-                ++fail_count;
-                ret = 1;
-                minunit_reserved_options->terminal_set_color(
-                    MINUNIT_TERMINAL_COLOR_RED);
-                printf("[%s]",
-                       "   FAIL   ");
-                minunit_reserved_options->terminal_set_color(
-                    MINUNIT_TERMINAL_COLOR_NORMAL);
-                printf(" Test %s%s%s\n",
-                       suite, suite_tag, test->name);
-            }
-            else
-            {
+#endif
                 minunit_reserved_options->terminal_set_color(
                     MINUNIT_TERMINAL_COLOR_GREEN);
-                printf("[%s]",
-                       "       OK ");
+                printf("[%s]", 
+                       " RUN      ");
                 minunit_reserved_options->terminal_set_color(
                     MINUNIT_TERMINAL_COLOR_NORMAL);
                 printf(" Test %s%s%s\n",
                        suite, suite_tag, test->name);
+#ifdef FORKED_TEST_RUNNER
             }
+#endif
+
+            minunit_test_context_t result = { true };
+
+            /* run the setup action before executing this test. */
+            setup_action(forked_context);
+
+#ifdef FORKED_TEST_RUNNER
+            if (child == 0)
+            {
+#endif
+                test->method(minunit_reserved_options, &result);
+#ifdef FORKED_TEST_RUNNER
+
+                write_test_result(forked_context, result.pass);
+            }
+
+            if (child != 0)
+            {
+                result.pass = read_test_result(forked_context);
+
+                if (child_process_died)
+                {
+                    minunit_reserved_options->terminal_set_color(
+                        MINUNIT_TERMINAL_COLOR_RED);
+                    printf("[%s]",
+                           "  CRASH   ");
+                    minunit_reserved_options->terminal_set_color(
+                        MINUNIT_TERMINAL_COLOR_NORMAL);
+                    printf(" Test %s%s%s\n",
+                           suite, suite_tag, test->name);
+
+                    return 1;
+                }
+            }
+#endif
+
+#ifdef FORKED_TEST_RUNNER
+            if (child != 0)
+            {
+#endif
+                if (!result.pass)
+                {
+                    test->failed = true;
+                    ++fail_count;
+                    ret = 1;
+                    minunit_reserved_options->terminal_set_color(
+                        MINUNIT_TERMINAL_COLOR_RED);
+                    printf("[%s]",
+                           "   FAIL   ");
+                    minunit_reserved_options->terminal_set_color(
+                        MINUNIT_TERMINAL_COLOR_NORMAL);
+                    printf(" Test %s%s%s\n",
+                           suite, suite_tag, test->name);
+                }
+                else
+                {
+                    minunit_reserved_options->terminal_set_color(
+                        MINUNIT_TERMINAL_COLOR_GREEN);
+                    printf("[%s]",
+                           "       OK ");
+                    minunit_reserved_options->terminal_set_color(
+                        MINUNIT_TERMINAL_COLOR_NORMAL);
+                    printf(" Test %s%s%s\n",
+                           suite, suite_tag, test->name);
+                }
+#ifdef FORKED_TEST_RUNNER
+            }
+#endif
         }
 
         test = test->next;
     }
+
+#ifdef FORKED_TEST_RUNNER
+    if (child == 0)
+    {
+        return 0;
+    }
+    else
+    {
+        int status;
+        waitpid(child, &status, 0);
+    }
+#endif
 
     if (strcmp(suite,""))
     {
@@ -258,9 +453,18 @@ bool running_in_color_terminal()
     return true;
 }
 
+static void install_dead_child_reaper()
+{
+#ifdef FORKED_TEST_RUNNER
+    signal(SIGCHLD, set_child_process_died);
+#endif
+}
+
 int main(int argc, char* argv[])
 {
     minunit_test_options_t options;
+
+    install_dead_child_reaper();
 
     if (running_in_color_terminal())
         options.terminal_set_color = &ansi_terminal_set_color;
