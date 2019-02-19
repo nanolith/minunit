@@ -13,7 +13,7 @@ before_install:
 
 before_script:
     - cd /tmp
-    - git clone https://github.com/nanolith/cbmc cbmc
+    - git clone --recursive https://github.com/nanolith/cbmc cbmc
     - cd /tmp/cbmc && git checkout develop
     - mkdir build && cd build
     - CC=gcc-8 CXX=g++-8 cmake -DCMAKE_INSTALL_PREFIX=/tmp/apps/minunit ..
