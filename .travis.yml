@@ -9,9 +9,14 @@ addons:
             - g++-8
 
 before_install:
-    - sudo apt-get install -y cmake git make
+    - sudo apt-get install -y git make
 
 before_script:
+    - export PATH=/tmp/apps/minunit/bin:$PATH
+    - export LD_LIBRARY_PATH=/tmp/apps/minunit/lib:$LD_LIBRARY_PATH
+    - cd /tmp
+    - wget https://cmake.org/files/v3.10/cmake-3.10.3-Linux-x86_64.sh
+    - sh cmake-3.10-Linux-x86_64.sh --prefix=/tmp/apps/minunit
     - cd /tmp
     - git clone --recursive https://github.com/nanolith/cbmc cbmc
     - cd /tmp/cbmc && git checkout develop
@@ -27,8 +32,6 @@ before_script:
     - CC=gcc-8 CXX=g++-8 cmake -DCMAKE_INSTALL_PREFIX=/tmp/apps/minunit ..
     - make && make install
     - cd /tmp
-    - export PATH=/tmp/apps/minunit/bin:$PATH
-    - export LD_LIBRARY_PATH=/tmp/apps/minunit/lib:$LD_LIBRARY_PATH
 
 jobs:
     include:
