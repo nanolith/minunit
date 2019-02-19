@@ -40,10 +40,12 @@ extern "C" {
 
 #define TEST(name) \
     static void minunit_reserved_## name ##_test_func( \
+        const minunit_test_options_t* minunit_reserved_options, \
         minunit_test_context_t* minunit_reserved_context); \
     static int minunit_reserved_## name ##_init = \
         minunit_register_test(&minunit_reserved_## name ## _test_func, #name); \
     static void minunit_reserved_## name ##_test_func( \
+        const minunit_test_options_t* minunit_reserved_options, \
         minunit_test_context_t* minunit_reserved_context)
 
 /**

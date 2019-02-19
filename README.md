@@ -52,10 +52,19 @@ Test Runner
 ===========
 
 By default, libmintest provides a test runner that executes tests from the
-console.  This test runner assumes an ANSI compatible console.  In future
-versions of this library, it will be possible to substitute in an alternative
-test runner so that tests can be run from a GUI, in an embedded context, or via
-some other user-defined mechanism.
+console.  This test runner assumes an ANSI compatible console.  This assumption
+can be overridden as described in the next paragraph.  In future versions of
+this library, it will be possible to substitute in an alternative test runner so
+that tests can be run from a GUI, in an embedded context, or via some other
+user-defined mechanism.
+
+ANSI colors can be disabled by redirecting standard input or standard output to
+a non-terminal device.  For instance, redirecting standard output to a file will
+automatically disable ANSI colors so that the file will be plaintext.
+Alternatively, as per the [`NO_COLOR`][no-color-org] standard, setting the
+`NO_COLOR` environment variable will disable this feature.
+
+[no-color-org]: https://no-color.org
 
 Building and Installing
 =======================
