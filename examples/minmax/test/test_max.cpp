@@ -8,6 +8,8 @@
 
 #include "../src/minmax.h"
 
+#include <stdlib.h>
+
 TEST_SUITE(max);
 
 TEST(positive)

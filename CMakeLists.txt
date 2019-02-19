@@ -17,7 +17,12 @@ TARGET_COMPILE_OPTIONS(minunit
                                "-I${CMAKE_BINARY_DIR}")
 
 #detect various platform options
+check_symbol_exists(dup2 "unistd.h" HAS_DUP2)
+check_symbol_exists(fork "unistd.h" HAS_FORK)
 check_symbol_exists(isatty "unistd.h" HAS_ISATTY)
+check_symbol_exists(signal "signal.h" HAS_SIGNAL)
+check_symbol_exists(socketpair "sys/socket.h" HAS_SOCKETPAIR)
+check_symbol_exists(waitpid "sys/wait.h" HAS_WAITPID)
 
 #Build config.h
 configure_file(config.h.cmake config.h)
