@@ -1,0 +1,32 @@
+language: cpp
+
+before_install:
+    - sudo apt-get install -y cmake git make
+
+before_script:
+    - cd /tmp
+    - git clone https://github.com/nanolith/cbmc cbmc
+    - cd /tmp/cbmc && git checkout develop
+    - mkdir build && cd build
+    - cmake -DCMAKE_INSTALL_PREFIX=/tmp/apps/minunit ..
+    - make && make install
+    - cd /tmp
+    - git clone https://github.com/nanolith/modelcheck modelcheck
+    - cd modelcheck && git checkout v0.1.0
+    - mkdir build && cd build
+    - cmake -DCMAKE_INSTALL_PREFIX=/tmp/apps/minunit ..
+    - make && make install
+    - cd /tmp
+    - export PATH=/tmp/apps/minunit/bin:$PATH
+    - export LD_LIBRARY_PATH=/tmp/apps/minunit/lib:$LD_LIBRARY_PATH
+
+jobs:
+    include:
+
+        - &build-and-test
+            stage: Build and test
+            install:
+            script:
+                mkdir build && cd build
+                cmake -DCMAKE_INSTALL_PREFIX=/tmp/apps/minunit -DCMAKE_PREFIX_PATH=/tmp/apps/minunit ..
+                make && make run_tests
