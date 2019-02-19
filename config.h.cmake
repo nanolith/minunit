@@ -1,0 +1,6 @@
+#ifndef  CONFIG_H_HEADER_GUARD
+# define CONFIG_H_HEADER_GUARD
+
+#cmakedefine HAS_ISATTY
+
+#endif /*CONFIG_H_HEADER_GUARD*/

@@ -7,9 +7,11 @@
  * distribution for more information.
  */
 
+#include <config.h>
 #include <minunit/minunit.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 /**
  * \brief Global linked list of test cases and suites.
@@ -63,7 +65,7 @@ int minunit_register_test(minunit_test_func_t test_func, const char* name)
 /**
  * \brief Run the unit tests.
  */
-static int test_runner()
+static int test_runner(const minunit_test_options_t* minunit_reserved_options)
 {
     int ret = 0;
 
@@ -76,7 +78,8 @@ static int test_runner()
     unsigned int fail_count = 0;
     minunit_list_count(minunit_test_cases, &suites, &tests);
 
-    printf("\033[0m[%s]\033[0m Executing %u suite%s with %s%u test%s.\n",
+    minunit_reserved_options->terminal_set_color(MINUNIT_TERMINAL_COLOR_NORMAL);
+    printf("[%s] Executing %u suite%s with %s%u test%s.\n",
            "==========",
            suites, suites == 0 || suites > 1 ? "s" : "",
            tests == 0 || tests > 1 ? "a total " : "",
@@ -94,7 +97,9 @@ static int test_runner()
         {
             if (strcmp(suite,""))
             {
-                printf("\033[0m[%s]\033[0m\n",
+                minunit_reserved_options->terminal_set_color(
+                    MINUNIT_TERMINAL_COLOR_NORMAL);
+                printf("[%s]\n",
                        "----------");
                 printf("\n");
             }
@@ -102,33 +107,50 @@ static int test_runner()
             suite = test->name;
             suite_tag = "::";
 
-            printf("\033[0m[%s]\033[0m\n",
+            minunit_reserved_options->terminal_set_color(
+                MINUNIT_TERMINAL_COLOR_NORMAL);
+            printf("[%s]\n",
                    "----------");
-            printf("\033[0m[%s]\033[0m %s\n",
+            printf("[%s] %s\n",
                    " SUITE    ", suite);
 
         }
         else
         {
-            printf("\033[32m[%s]\033[0m Test %s%s%s\n",
-                   " RUN      ", 
+            minunit_reserved_options->terminal_set_color(
+                MINUNIT_TERMINAL_COLOR_GREEN);
+            printf("[%s]", 
+                   " RUN      ");
+            minunit_reserved_options->terminal_set_color(
+                MINUNIT_TERMINAL_COLOR_NORMAL);
+            printf(" Test %s%s%s\n",
                    suite, suite_tag, test->name);
 
             minunit_test_context_t result = { true };
-            test->method(&result);
+            test->method(minunit_reserved_options, &result);
             if (!result.pass)
             {
                 test->failed = true;
                 ++fail_count;
                 ret = 1;
-                printf("\033[31m[%s]\033[0m Test %s%s%s\n",
-                       "   FAIL   ",
+                minunit_reserved_options->terminal_set_color(
+                    MINUNIT_TERMINAL_COLOR_RED);
+                printf("[%s]",
+                       "   FAIL   ");
+                minunit_reserved_options->terminal_set_color(
+                    MINUNIT_TERMINAL_COLOR_NORMAL);
+                printf(" Test %s%s%s\n",
                        suite, suite_tag, test->name);
             }
             else
             {
-                printf("\033[32m[%s]\033[0m Test %s%s%s\n",
-                       "       OK ",
+                minunit_reserved_options->terminal_set_color(
+                    MINUNIT_TERMINAL_COLOR_GREEN);
+                printf("[%s]",
+                       "       OK ");
+                minunit_reserved_options->terminal_set_color(
+                    MINUNIT_TERMINAL_COLOR_NORMAL);
+                printf(" Test %s%s%s\n",
                        suite, suite_tag, test->name);
             }
         }
@@ -138,16 +160,22 @@ static int test_runner()
 
     if (strcmp(suite,""))
     {
-        printf("\033[0m[%s]\033[0m\n",
+        minunit_reserved_options->terminal_set_color(
+            MINUNIT_TERMINAL_COLOR_NORMAL);
+        printf("[%s]\n",
                "----------");
         printf("\n");
     }
 
-    printf("\033[0m[%s]\033[0m Test Summary \n", "==========");
+    minunit_reserved_options->terminal_set_color(
+        MINUNIT_TERMINAL_COLOR_NORMAL);
+    printf("[%s] Test Summary \n", "==========");
 
     if (fail_count > 0)
     {
-        printf("\033[0m[%s]\033[0m Encountered %u failure%s:\n",
+        minunit_reserved_options->terminal_set_color(
+            MINUNIT_TERMINAL_COLOR_NORMAL);
+        printf("[%s] Encountered %u failure%s:\n",
                "----------", fail_count, fail_count > 1 ? "s" : "");
 
         test = minunit_test_cases;
@@ -163,8 +191,13 @@ static int test_runner()
             }
             else if (test->failed)
             {
-                printf("\033[31m[%s]\033[0m %s%s%s\n",
-                       "   FAIL   ", suite, suite_tag, test->name);
+                minunit_reserved_options->terminal_set_color(
+                    MINUNIT_TERMINAL_COLOR_RED);
+                printf("[%s]",
+                       "   FAIL   ");
+                minunit_reserved_options->terminal_set_color(
+                    MINUNIT_TERMINAL_COLOR_NORMAL);
+                printf(" %s%s%s\n", suite, suite_tag, test->name);
             }
 
             minunit_test_case_t* next = test->next;
@@ -175,14 +208,64 @@ static int test_runner()
     }
     else
     {
-        printf("\033[32m[%s] All tests passed.\033[0m\n",
+        minunit_reserved_options->terminal_set_color(
+            MINUNIT_TERMINAL_COLOR_GREEN);
+        printf("[%s] All tests passed.\n",
                "       OK ");
+        minunit_reserved_options->terminal_set_color(
+            MINUNIT_TERMINAL_COLOR_NORMAL);
     }
 
     return ret;
 }
 
+static void ansi_terminal_set_color(int color)
+{
+    switch (color)
+    {
+        case MINUNIT_TERMINAL_COLOR_GREEN:
+            printf("\033[32m");
+            break;
+
+        case MINUNIT_TERMINAL_COLOR_RED:
+            printf("\033[31m");
+            break;
+
+        default:
+            printf("\033[0m");
+            break;
+    }
+}
+
+static void no_set_color(int color)
+{
+    (void)color;
+}
+
+bool running_in_color_terminal()
+{
+    /* with isatty() support, if we are using redirection, disable color. */
+#ifdef HAS_ISATTY
+    if (!isatty(fileno(stdin)) || !isatty(fileno(stdout)))
+        return false;
+#endif
+
+    /* no-color.org suggestion. */
+    if (NULL != getenv("NO_COLOR"))
+        return false;
+
+    /* by default, use color. */
+    return true;
+}
+
 int main(int argc, char* argv[])
 {
-    return test_runner();
+    minunit_test_options_t options;
+
+    if (running_in_color_terminal())
+        options.terminal_set_color = &ansi_terminal_set_color;
+    else
+        options.terminal_set_color = &no_set_color;
+
+    return test_runner(&options);
 }

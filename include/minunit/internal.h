@@ -18,6 +18,30 @@ extern "C" {
 #include <stdio.h>
 
 /**
+ * \brief Enumeration for supported terminal colors.
+ */
+enum minunit_terminal_colors
+{
+    MINUNIT_TERMINAL_COLOR_NORMAL,
+    MINUNIT_TERMINAL_COLOR_GREEN,
+    MINUNIT_TERMINAL_COLOR_RED,
+    MINUNIT_TERMINAL_COLOR_INVALID
+};
+
+/**
+ * \brief Function type to set terminal color.
+ */
+typedef void (*terminal_set_color_func_t)(int color);
+
+/**
+ * \brief Global test options.
+ */
+typedef struct minunit_test_options
+{
+    terminal_set_color_func_t terminal_set_color;
+} minunit_test_options_t;
+
+/**
  * \brief Simple test context that exposes a pass or fail flag.
  */
 typedef struct minunit_test_context
@@ -29,7 +53,7 @@ typedef struct minunit_test_context
  * \brief Type of a minunit test function.
  */
 typedef void (*minunit_test_func_t)(
-    minunit_test_context_t* minunit_reserved_context);
+    const minunit_test_options_t*, minunit_test_context_t*);
 
 /**
  * \brief Internal method to register a minunit test.
@@ -83,8 +107,13 @@ typedef struct minunit_test_case
         } \
         else \
         { \
-            printf("%s:%d: \033[31merror\033[0m: expecting %s.\n", \
-                   file, line, message); \
+            printf("%s:%d: ", file, line); \
+            minunit_reserved_options->terminal_set_color( \
+                MINUNIT_TERMINAL_COLOR_RED); \
+            printf("error"); \
+            minunit_reserved_options->terminal_set_color( \
+                MINUNIT_TERMINAL_COLOR_NORMAL); \
+            printf(": expecting %s.\n", message); \
             minunit_reserved_context->pass = false; \
             return; \
         } \
@@ -100,8 +129,13 @@ typedef struct minunit_test_case
         } \
         else \
         { \
-            printf("%s:%d: \033[31merror\033[0m: expecting %s.\n", \
-                   file, line, message); \
+            printf("%s:%d: ", file, line); \
+            minunit_reserved_options->terminal_set_color( \
+                MINUNIT_TERMINAL_COLOR_RED); \
+            printf("error"); \
+            minunit_reserved_options->terminal_set_color( \
+                MINUNIT_TERMINAL_COLOR_NORMAL); \
+            printf(": expecting %s.\n", message); \
             minunit_reserved_context->pass = false; \
         } \
     } while (0)
