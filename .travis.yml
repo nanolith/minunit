@@ -1,7 +1,15 @@
 language: cpp
 
+addons:
+    apt:
+        sources:
+            ubuntu-toolchain-r-test
+        packages:
+            - gcc-8
+            - g++-8
+
 before_install:
-    - sudo apt-get install -y cmake git make gcc-8 g++-8
+    - sudo apt-get install -y cmake git make
 
 before_script:
     - cd /tmp
