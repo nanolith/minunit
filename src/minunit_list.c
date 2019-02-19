@@ -49,21 +49,23 @@ void minunit_list_reverse(minunit_test_case_t** root)
 void minunit_list_count(
     minunit_test_case_t* root, unsigned int *suites, unsigned int *tests)
 {
+    minunit_test_case_t* curr = root;
+
     MODEL_ASSERT(NULL != suites);
     MODEL_ASSERT(NULL != tests);
 
     *suites = 0;
     *tests = 0;
 
-    while (NULL != root)
+    while (NULL != curr)
     {
-        MODEL_ASSERT(MINUNIT_PROP_LIST_NODE_VALID(root));
+        MODEL_ASSERT(MINUNIT_PROP_LIST_NODE_VALID(curr));
 
-        if (MINUNIT_TEST_TYPE_SUITE == root->type)
+        if (MINUNIT_TEST_TYPE_SUITE == curr->type)
             *suites += 1;
-        if (MINUNIT_TEST_TYPE_UNIT == root->type)
+        if (MINUNIT_TEST_TYPE_UNIT == curr->type)
             *tests += 1;
 
-        root = root->next;
+        curr = curr->next;
     }
 }

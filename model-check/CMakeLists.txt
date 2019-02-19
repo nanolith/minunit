@@ -25,4 +25,4 @@ endfunction(check_target)
 check_target(
     NAME check_list SOURCES "../src/minunit_list.c" "check_list.c"
     FEATURES "--unwindset"
-    "minunit_prop_list_node_valid_helper.0:3,minunit_list_reverse.0:3,main.0:3")
+    "minunit_prop_list_node_valid_helper.0:3,minunit_list_reverse.0:3,minunit_list_count.0:3,main.0:3")

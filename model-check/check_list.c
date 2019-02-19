@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
     suites = nondet_unsigned_int(); tests = nondet_unsigned_int();
     minunit_list_count(empty, &suites, &tests);
     MODEL_ASSERT(1 == suites);
-    MODEL_ASSERT(0 == tests);
+    MODEL_ASSERT(1 == tests);
 
     /* clean up. */
     while (NULL != empty)
