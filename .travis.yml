@@ -16,7 +16,7 @@ before_script:
     - export LD_LIBRARY_PATH=/tmp/apps/minunit/lib:$LD_LIBRARY_PATH
     - cd /tmp
     - wget https://cmake.org/files/v3.10/cmake-3.10.3-Linux-x86_64.sh
-    - sh cmake-3.10-Linux-x86_64.sh --prefix=/tmp/apps/minunit
+    - sh cmake-3.10.3-Linux-x86_64.sh --prefix=/tmp/apps/minunit
     - cd /tmp
     - git clone --recursive https://github.com/nanolith/cbmc cbmc
     - cd /tmp/cbmc && git checkout develop
