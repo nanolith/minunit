@@ -12,6 +12,7 @@ before_install:
     - sudo apt-get install -y git make
 
 before_script:
+    - mkdir -p /tmp/apps/minunit/bin
     - export PATH=/tmp/apps/minunit/bin:$PATH
     - export LD_LIBRARY_PATH=/tmp/apps/minunit/lib:$LD_LIBRARY_PATH
     - cd /tmp
@@ -23,7 +24,6 @@ before_script:
     - mkdir build && cd build
     - CC=gcc-8 CXX=g++-8 cmake -DCMAKE_INSTALL_PREFIX=/tmp/apps/minunit ..
     - make -j4
-    - mkdir -p /tmp/apps/minunit/bin
     - cp bin/cbmc /tmp/apps/minunit/bin
     - cd /tmp
     - git clone https://github.com/nanolith/modelcheck modelcheck
