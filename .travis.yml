@@ -19,7 +19,7 @@ before_script:
     - CC=gcc-8 CXX=g++-8 cmake -DCMAKE_INSTALL_PREFIX=/tmp/apps/minunit ..
     - make -j4
     - mkdir -p /tmp/apps/minunit/bin
-    - cp cbmc /tmp/apps/minunit/bin
+    - cp bin/cbmc /tmp/apps/minunit/bin
     - cd /tmp
     - git clone https://github.com/nanolith/modelcheck modelcheck
     - cd modelcheck && git checkout v0.1.0
