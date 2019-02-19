@@ -40,6 +40,6 @@ jobs:
             stage: Build and test
             install:
             script:
-                mkdir build && cd build
-                CC=gcc-8 CXX=g++-8 cmake -DCMAKE_INSTALL_PREFIX=/tmp/apps/minunit -DCMAKE_PREFIX_PATH=/tmp/apps/minunit ..
-                make && make run_tests
+                - mkdir build && cd build
+                - CC=gcc-8 CXX=g++-8 cmake -DCMAKE_INSTALL_PREFIX=/tmp/apps/minunit -DCMAKE_PREFIX_PATH=/tmp/apps/minunit ..
+                - make && make run_tests
