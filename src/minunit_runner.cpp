@@ -454,18 +454,9 @@ bool running_in_color_terminal()
     return true;
 }
 
-static void install_dead_child_reaper()
-{
-#ifdef FORKED_TEST_RUNNER
-    signal(SIGCHLD, set_child_process_died);
-#endif
-}
-
 int main(int argc, char* argv[])
 {
     minunit_test_options_t options;
-
-    install_dead_child_reaper();
 
     if (running_in_color_terminal())
         options.terminal_set_color = &ansi_terminal_set_color;
