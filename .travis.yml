@@ -42,5 +42,5 @@ jobs:
             install:
             script:
                 - mkdir build && cd build
-                - CC=gcc-8 CXX=g++-8 cmake -DCMAKE_INSTALL_PREFIX=/tmp/apps/minunit -DCMAKE_PREFIX_PATH=/tmp/apps/minunit ..
+                - CC=gcc-8 CXX=g++-8 cmake -DMODELCHECK_ENABLED=ON -DCMAKE_INSTALL_PREFIX=/tmp/apps/minunit -DCMAKE_PREFIX_PATH=/tmp/apps/minunit ..
                 - make && make run_tests
