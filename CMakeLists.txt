@@ -6,7 +6,12 @@ INCLUDE(CheckSymbolExists)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules")
 
-find_package(modelcheck REQUIRED)
+option(MODELCHECK_ENABLED "Enable Model Checking")
+
+if (MODELCHECK_ENABLED)
+    find_package(modelcheck REQUIRED)
+    set(HAS_MODELCHECK)
+endif()
 
 INCLUDE_DIRECTORIES(include)
 AUX_SOURCE_DIRECTORY(src MINUNIT_SOURCES)
@@ -52,5 +57,7 @@ INSTALL(TARGETS minunit
 #Examples
 ADD_SUBDIRECTORY(examples)
 
-#Model checks
-ADD_SUBDIRECTORY(model-check)
+if (MODELCHECK_ENABLED)
+    #Model checks
+    ADD_SUBDIRECTORY(model-check)
+endif()

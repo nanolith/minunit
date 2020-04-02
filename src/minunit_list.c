@@ -7,8 +7,8 @@
  * distribution for more information.
  */
 
+#include <config.h>
 #include <minunit/minunit.h>
-#include <modelcheck/model_assert.h>
 
 /**
  * \brief Reverse a test case list.

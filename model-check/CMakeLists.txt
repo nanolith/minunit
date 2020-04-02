@@ -10,9 +10,8 @@ function(check_target)
                      --div-by-zero-check --signed-overflow-check
                      --unsigned-overflow-check --pointer-overflow-check
                      --conversion-check --trace --stop-on-fail -DMODEL_CHECK
-                     --object-bits 16 --drop-unused-functions --unwind 10
-                     --full-slice
-                     -I ../include
+                     --drop-unused-functions --unwind 10
+                     -I ../include -I ${CMAKE_CURRENT_BINARY_DIR}/..
                      ${CHECK_TARGET_FEATURES}
                      ${MODELCHECK_CFLAGS}
                      ${MODELCHECK_ALLOCATOR_SOURCES}
