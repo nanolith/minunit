@@ -3,7 +3,7 @@
  *
  * \brief Simple test runner for minunit.
  *
- * \copyright 2019 Justin Handville.  Please see LICENSE.txt in this
+ * \copyright 2019-2020 Justin Handville.  Please see LICENSE.txt in this
  * distribution for more information.
  */
 
@@ -87,12 +87,14 @@ int minunit_register_test(minunit_test_func_t test_func, const char* name)
  */
 typedef void (*setup_action_func_t)(void*);
 
+#ifndef FORKED_TEST_RUNNER
 /**
  * No-op setup action.
  */
 static void no_op_setup_action(void*)
 {
 }
+#endif
 
 #ifdef FORKED_TEST_RUNNER
 pid_t fork_test_runner(int parentfd, int childfd)
@@ -119,7 +121,8 @@ static void parent_setup_action(void* ctx)
 
     char ch = 0;
 
-    write(*s, &ch, sizeof(ch));
+    if (write(*s, &ch, sizeof(ch)) < 0)
+        return;
 }
 
 static void child_setup_action(void* ctx)
@@ -128,7 +131,8 @@ static void child_setup_action(void* ctx)
 
     char ch;
 
-    read(*s, &ch, sizeof(ch));
+    if (read(*s, &ch, sizeof(ch)) < 0)
+        return;
 }
 
 static void write_test_result(void* ctx, bool result)
@@ -137,7 +141,8 @@ static void write_test_result(void* ctx, bool result)
 
     uint32_t val = result ? 1 : 0;
 
-    write(*s, &val, sizeof(val));
+    if (write(*s, &val, sizeof(val)) < 0)
+        return;
 }
 
 static bool read_test_result(void* ctx)
@@ -145,8 +150,9 @@ static bool read_test_result(void* ctx)
     int* s = (int*)ctx;
 
     uint32_t val;
+    ssize_t valsize = (ssize_t)sizeof(val);
 
-    if (read(*s, &val, sizeof(val)) < sizeof(val))
+    if (read(*s, &val, sizeof(val)) < valsize)
     {
         set_child_process_died(0);
         return false;
