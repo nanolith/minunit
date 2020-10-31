@@ -6,6 +6,7 @@ INCLUDE(CheckSymbolExists)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules")
 
+option(FORKED_TEST_RUNNER_SELECTED "Use a forked test runner." ON)
 option(MODELCHECK_ENABLED "Enable Model Checking")
 
 if (MODELCHECK_ENABLED)
