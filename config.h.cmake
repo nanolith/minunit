@@ -8,10 +8,12 @@
 #cmakedefine HAS_SOCKETPAIR
 #cmakedefine HAS_WAITPID
 #cmakedefine HAS_MODELCHECK
+#cmakedefine FORKED_TEST_RUNNER_SELECTED
 
 /* support for forked test runner. */
 #if defined(HAS_DUP2) && defined(HAS_FORK) && defined(HAS_SIGNAL) \
-    && defined(HAS_SOCKETPAIR) && defined(HAS_WAITPID)
+    && defined(HAS_SOCKETPAIR) && defined(HAS_WAITPID) \
+    && defined(FORKED_TEST_RUNNER_SELECTED)
 # define FORKED_TEST_RUNNER
 #endif
 
