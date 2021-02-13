@@ -52,11 +52,12 @@ Test Runner
 ===========
 
 By default, libmintest provides a test runner that executes tests from the
-console.  This test runner assumes an ANSI compatible console.  This assumption
-can be overridden as described in the next paragraph.  In future versions of
-this library, it will be possible to substitute in an alternative test runner so
-that tests can be run from a GUI, in an embedded context, or via some other
-user-defined mechanism.
+console.  This test runner is forked, so if a test crashes, the console will
+report a crash.  This test runner assumes an ANSI compatible console.  This
+assumption can be overridden as described in the next paragraph.  In future
+versions of this library, it will be possible to substitute in an alternative
+test runner so that tests can be run from a GUI, in an embedded context, or via
+some other user-defined mechanism.
 
 ANSI colors can be disabled by redirecting standard input or standard output to
 a non-terminal device.  For instance, redirecting standard output to a file will
