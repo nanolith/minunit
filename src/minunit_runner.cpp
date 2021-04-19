@@ -412,8 +412,8 @@ static int test_runner(const minunit_test_options_t* minunit_reserved_options)
     {
         minunit_reserved_options->terminal_set_color(
             MINUNIT_TERMINAL_COLOR_GREEN);
-        printf("[%s] All tests passed.\n",
-               "       OK ");
+        printf("[%s] All tests passed (%u / %u).\n",
+               "       OK ", tests, tests);
         minunit_reserved_options->terminal_set_color(
             MINUNIT_TERMINAL_COLOR_NORMAL);
     }
