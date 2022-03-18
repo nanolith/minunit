@@ -52,12 +52,20 @@ extern "C" {
  * \brief If this is the last statement in a test, and no assertions failed,
  * this forces the test to pass.
  */
-#define TEST_SUCCESS() minunit_reserved_context->pass = true;
+#define TEST_SUCCESS() \
+    do { \
+        (void)minunit_reserved_options; \
+        minunit_reserved_context->pass = true; \
+    } while (0)
 
 /**
  * \brief This forces a test to fail.
  */
-#define TEST_FAILURE() minunit_reserved_context->pass = false;
+#define TEST_FAILURE() \
+    do { \
+        (void)minunit_reserved_options; \
+        minunit_reserved_context->pass = false; \
+    } while (0)
 
 /**
  * \brief Assert that a given condition is true.
