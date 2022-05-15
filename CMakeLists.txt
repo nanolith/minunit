@@ -19,7 +19,7 @@ AUX_SOURCE_DIRECTORY(src MINUNIT_SOURCES)
 
 ADD_LIBRARY(minunit STATIC ${MINUNIT_SOURCES})
 TARGET_COMPILE_OPTIONS(minunit
-                       PRIVATE ${MODELCHECK_CFLAGS}
+                       PRIVATE -fPIC -fPIE -O2 ${MODELCHECK_CFLAGS}
                                "-I${CMAKE_BINARY_DIR}")
 
 #detect various platform options
