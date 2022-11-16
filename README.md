@@ -1,7 +1,7 @@
-Minimum Unit Test Framework
+Minimal Unit Test Framework
 ===========================
 
-The Minimum Unit Test Framework provides a minimum test runner and unit test
+The Minimal Unit Test Framework provides a minimum test runner and unit test
 registration mechanism so that unit tests can be executed against C/C++.  This
 framework requires that tests be written in C++, but these can easily be used to
 test C code.
