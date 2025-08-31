@@ -207,24 +207,34 @@ static int test_runner(const minunit_test_options_t* minunit_reserved_options)
     unsigned int suites = 0;
     unsigned int tests = 0;
     unsigned int fail_count = 0;
+    bool display_stats = true;
     minunit_list_count(minunit_test_cases, &suites, &tests);
+
+    if (NULL != minunit_reserved_options->test_suite)
+    {
+        display_stats = false;
+    }
 
     minunit_reserved_options->terminal_set_color(MINUNIT_TERMINAL_COLOR_NORMAL);
 #ifdef FORKED_TEST_RUNNER
     if (child != 0)
     {
 #endif
-        printf("[%s] Executing %u suite%s with %s%u test%s.\n",
-               "==========",
-               suites, suites == 0 || suites > 1 ? "s" : "",
-               tests == 0 || tests > 1 ? "a total " : "",
-               tests, tests == 0 || tests > 1 ? "s" : "");
+        if (display_stats)
+        {
+            printf("[%s] Executing %u suite%s with %s%u test%s.\n",
+                   "==========",
+                   suites, suites == 0 || suites > 1 ? "s" : "",
+                   tests == 0 || tests > 1 ? "a total " : "",
+                   tests, tests == 0 || tests > 1 ? "s" : "");
+        }
 #ifdef FORKED_TEST_RUNNER
     }
 #endif
 
     const char* suite = "";
     const char* suite_tag = "";
+    bool skip_suite = false;
 
     /* run the tests. */
     minunit_test_case_t* test = minunit_test_cases;
@@ -233,6 +243,20 @@ static int test_runner(const minunit_test_options_t* minunit_reserved_options)
         /* is this a suite? */
         if (MINUNIT_TEST_TYPE_SUITE == test->type)
         {
+            skip_suite = false;
+
+            /* should we skip this suite? */
+            if (NULL != minunit_reserved_options->test_suite
+                && strcmp(test->name, minunit_reserved_options->test_suite))
+            {
+                skip_suite = true;
+            }
+
+            if (skip_suite)
+            {
+                continue;
+            }
+
 #ifdef FORKED_TEST_RUNNER
             if (child != 0)
             {
@@ -262,6 +286,19 @@ static int test_runner(const minunit_test_options_t* minunit_reserved_options)
         }
         else
         {
+            /* don't run the test if this suite is to be skipped. */
+            if (skip_suite)
+            {
+                continue;
+            }
+
+            /* should we skip this test? */
+            if (NULL != minunit_reserved_options->test
+                && strcmp(test->name, minunit_reserved_options->test))
+            {
+                continue;
+            }
+
 #ifdef FORKED_TEST_RUNNER
             if (child != 0)
             {
