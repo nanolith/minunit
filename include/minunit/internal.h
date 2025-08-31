@@ -40,6 +40,7 @@ typedef struct minunit_test_options
 {
     terminal_set_color_func_t terminal_set_color;
     const char* test_suite;
+    const char* test;
 } minunit_test_options_t;
 
 /**
