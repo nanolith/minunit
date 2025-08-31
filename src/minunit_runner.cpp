@@ -56,6 +56,7 @@ int minunit_register_suite(const char* name)
     newtest->next = minunit_test_cases;
     newtest->type = MINUNIT_TEST_TYPE_SUITE;
     newtest->name = name;
+    newtest->flags = MINUNIT_TEST_FLAG_ENABLED;
 
     /* add the entry to the linked list. */
     minunit_test_cases = newtest;
@@ -75,6 +76,7 @@ int minunit_register_test(minunit_test_func_t test_func, const char* name)
     newtest->type = MINUNIT_TEST_TYPE_UNIT;
     newtest->name = name;
     newtest->method = test_func;
+    newtest->flags = MINUNIT_TEST_FLAG_ENABLED;
 
     /* add the entry to the linked list. */
     minunit_test_cases = newtest;
