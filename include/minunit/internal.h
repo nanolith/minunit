@@ -85,6 +85,14 @@ enum minunit_test_type
 };
 
 /**
+ * \brief Internal enumeration of test flags.
+ */
+enum minunit_test_flag
+{
+    MINUNIT_TEST_FLAG_ENABLED           = 1,
+};
+
+/**
  * A node in the test case linked list, which can be either a unit test or a
  * suite tag.
  */
