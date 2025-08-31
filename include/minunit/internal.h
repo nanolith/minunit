@@ -103,6 +103,7 @@ typedef struct minunit_test_case
     const char* name;
     minunit_test_func_t method;
     bool failed;
+    int flags;
 } minunit_test_case_t;
 
 /**
