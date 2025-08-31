@@ -13,12 +13,15 @@
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
+#include <string>
 
 #ifdef FORKED_TEST_RUNNER
 # include <signal.h>
 # include <sys/socket.h>
 # include <sys/wait.h>
 #endif
+
+using namespace std;
 
 #ifdef FORKED_TEST_RUNNER
 static bool child_process_died = false;
@@ -238,7 +241,7 @@ static int test_runner(const minunit_test_options_t* minunit_reserved_options)
 
     /* run the tests. */
     minunit_test_case_t* test = minunit_test_cases;
-    while (test)
+    for (; NULL != test; test = test->next)
     {
         /* is this a suite? */
         if (MINUNIT_TEST_TYPE_SUITE == test->type)
@@ -383,8 +386,6 @@ static int test_runner(const minunit_test_options_t* minunit_reserved_options)
             }
 #endif
         }
-
-        test = test->next;
     }
 
 #ifdef FORKED_TEST_RUNNER
@@ -408,12 +409,12 @@ static int test_runner(const minunit_test_options_t* minunit_reserved_options)
         printf("\n");
     }
 
-    minunit_reserved_options->terminal_set_color(
-        MINUNIT_TERMINAL_COLOR_NORMAL);
-    printf("[%s] Test Summary \n", "==========");
-
     if (fail_count > 0)
     {
+        minunit_reserved_options->terminal_set_color(
+            MINUNIT_TERMINAL_COLOR_NORMAL);
+        printf("[%s] Test Summary \n", "==========");
+
         minunit_reserved_options->terminal_set_color(
             MINUNIT_TERMINAL_COLOR_NORMAL);
         printf("[%s] Encountered %u failure%s:\n",
@@ -449,12 +450,19 @@ static int test_runner(const minunit_test_options_t* minunit_reserved_options)
     }
     else
     {
-        minunit_reserved_options->terminal_set_color(
-            MINUNIT_TERMINAL_COLOR_GREEN);
-        printf("[%s] All tests passed (%u / %u).\n",
-               "       OK ", tests, tests);
-        minunit_reserved_options->terminal_set_color(
-            MINUNIT_TERMINAL_COLOR_NORMAL);
+        if (display_stats)
+        {
+            minunit_reserved_options->terminal_set_color(
+                MINUNIT_TERMINAL_COLOR_NORMAL);
+            printf("[%s] Test Summary \n", "==========");
+
+            minunit_reserved_options->terminal_set_color(
+                MINUNIT_TERMINAL_COLOR_GREEN);
+            printf("[%s] All tests passed (%u / %u).\n",
+                   "       OK ", tests, tests);
+            minunit_reserved_options->terminal_set_color(
+                MINUNIT_TERMINAL_COLOR_NORMAL);
+        }
     }
 
     return ret;
@@ -499,6 +507,56 @@ bool running_in_color_terminal()
     return true;
 }
 
+static string suite;
+static string test;
+
+static void handle_test_argument(
+    minunit_test_options_t* options, int argc, char* argv[])
+{
+    options->test_suite = NULL;
+    options->test = NULL;
+
+    /* is there a test argument? */
+    if (argc <= 1)
+    {
+        return;
+    }
+
+    string testarg = argv[1];
+    size_t splitpos = testarg.find(".");
+
+    /* handle test and suite limiting case. */
+    if (string::npos != splitpos)
+    {
+        suite = testarg.substr(0, splitpos);
+        test = testarg.substr(splitpos + 1);
+
+        if ("" == suite)
+        {
+            fprintf(
+                stderr, "Invalid test/suite combination %s.\n",
+                testarg.c_str());
+            exit(1);
+        }
+
+        options->test_suite = suite.c_str();
+
+        if ("" != test)
+        {
+            options->test = test.c_str();
+        }
+    }
+    else
+    {
+        /* handle suite limiting case. */
+        if ("" != testarg)
+        {
+            suite = testarg;
+            options->test_suite = suite.c_str();
+        }
+    }
+}
+
 int main(int argc, char* argv[])
 {
     minunit_test_options_t options;
@@ -507,6 +565,8 @@ int main(int argc, char* argv[])
         options.terminal_set_color = &ansi_terminal_set_color;
     else
         options.terminal_set_color = &no_set_color;
+
+    handle_test_argument(&options, argc, argv);
 
     return test_runner(&options);
 }
